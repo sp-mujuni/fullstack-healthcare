@@ -1,4 +1,4 @@
-import { Roles } from "@/types/globals";
+import { Roles } from "@/types/globals"; // Make sure Roles is exported as an enum or object, not just a type
 import { auth } from "@clerk/nextjs/server";
 
 export const checkRole = async (role: Roles) => {
@@ -10,7 +10,7 @@ export const checkRole = async (role: Roles) => {
 export const getRole = async () => {
   const { sessionClaims } = await auth();
 
-  const role = sessionClaims?.metadata.role!?.toLowerCase() || "patient";
+  const role = sessionClaims?.metadata?.role?.toLowerCase() || "patient";
 
   return role;
 };
