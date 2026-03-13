@@ -1,11 +1,13 @@
 "use server";
 
+import { createAuditLog } from "@/lib/audit";
 import db from "@/lib/db";
 import { PatientFormSchema } from "@/lib/schema";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function updatePatient(data: any, pid: string) {
   try {
+    const { userId } = await auth();
     const validateData = PatientFormSchema.safeParse(data);
 
     if (!validateData.success) {
@@ -31,6 +33,14 @@ export async function updatePatient(data: any, pid: string) {
       where: { id: pid },
     });
 
+    await createAuditLog({
+      userId,
+      recordId: pid,
+      action: "UPDATE",
+      model: "Patient",
+      details: "Updated patient profile",
+    });
+
     return {
       success: true,
       error: false,
@@ -43,6 +53,7 @@ export async function updatePatient(data: any, pid: string) {
 }
 export async function createNewPatient(data: any, pid: string) {
   try {
+    const { userId } = await auth();
     const validateData = PatientFormSchema.safeParse(data);
 
     if (!validateData.success) {
@@ -78,6 +89,14 @@ export async function createNewPatient(data: any, pid: string) {
         ...patientData,
         id: patient_id,
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: patient_id,
+      action: "CREATE",
+      model: "Patient",
+      details: "Created new patient profile",
     });
 
     return { success: true, error: false, msg: "Patient created successfully" };
