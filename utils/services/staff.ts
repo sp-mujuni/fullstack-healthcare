@@ -1,4 +1,6 @@
 import db from "@/lib/db";
+import { daysOfWeek } from "..";
+import { processAppointments } from "./patient";
 
 export async function getAllStaff({
   page,
@@ -39,6 +41,89 @@ export async function getAllStaff({
       totalRecords,
       totalPages,
       currentPage: PAGE_NUMBER,
+      status: 200,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "Internal Server Error", status: 500 };
+  }
+}
+
+export async function getNurseDashboardStats() {
+  try {
+    const todayDate = new Date().getDay();
+    const today = daysOfWeek[todayDate];
+
+    const [totalPatients, totalDoctors, appointments, availableDoctors] =
+      await Promise.all([
+        db.patient.count(),
+        db.doctor.count(),
+        db.appointment.findMany({
+          include: {
+            patient: {
+              select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                gender: true,
+                date_of_birth: true,
+                colorCode: true,
+                img: true,
+              },
+            },
+            doctor: {
+              select: {
+                id: true,
+                name: true,
+                specialization: true,
+                img: true,
+                colorCode: true,
+              },
+            },
+          },
+          orderBy: { appointment_date: "desc" },
+        }),
+        db.doctor.findMany({
+          where: {
+            working_days: {
+              some: { day: { equals: today, mode: "insensitive" } },
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            img: true,
+            colorCode: true,
+            working_days: true,
+          },
+          take: 5,
+        }),
+      ]);
+
+    const todayAppointments = appointments.filter((item) => {
+      const date = new Date(item.appointment_date);
+      const now = new Date();
+      return (
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate()
+      );
+    });
+
+    const { appointmentCounts, monthlyData } =
+      await processAppointments(appointments);
+
+    return {
+      success: true,
+      totalPatients,
+      totalDoctors,
+      totalAppointments: appointments.length,
+      todayAppointments: todayAppointments.length,
+      appointmentCounts,
+      monthlyData,
+      availableDoctors,
+      last5Records: appointments.slice(0, 5),
       status: 200,
     };
   } catch (error) {
