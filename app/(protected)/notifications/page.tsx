@@ -13,31 +13,32 @@ type FeedItem = {
 };
 
 const NotificationsPage = async () => {
-  const [pendingAppointments, unpaidPayments, latestReviews] = await Promise.all([
-    db.appointment.findMany({
-      where: { status: "PENDING" },
-      orderBy: { created_at: "desc" },
-      take: 10,
-      include: {
-        patient: { select: { first_name: true, last_name: true } },
-      },
-    }),
-    db.payment.findMany({
-      where: { status: { in: ["UNPAID", "PART"] } },
-      orderBy: { created_at: "desc" },
-      take: 10,
-      include: {
-        patient: { select: { first_name: true, last_name: true } },
-      },
-    }),
-    db.rating.findMany({
-      orderBy: { created_at: "desc" },
-      take: 10,
-      include: {
-        patient: { select: { first_name: true, last_name: true } },
-      },
-    }),
-  ]);
+  const [pendingAppointments, unpaidPayments, latestReviews] =
+    await Promise.all([
+      db.appointment.findMany({
+        where: { status: "PENDING" },
+        orderBy: { created_at: "desc" },
+        take: 10,
+        include: {
+          patient: { select: { first_name: true, last_name: true } },
+        },
+      }),
+      db.payment.findMany({
+        where: { status: { in: ["UNPAID", "PART"] } },
+        orderBy: { created_at: "desc" },
+        take: 10,
+        include: {
+          patient: { select: { first_name: true, last_name: true } },
+        },
+      }),
+      db.rating.findMany({
+        orderBy: { created_at: "desc" },
+        take: 10,
+        include: {
+          patient: { select: { first_name: true, last_name: true } },
+        },
+      }),
+    ]);
 
   const feed: FeedItem[] = [
     ...pendingAppointments.map((item) => ({
@@ -76,7 +77,9 @@ const NotificationsPage = async () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-yellow-100/60">
               <p className="text-sm text-gray-500">Pending Appointments</p>
-              <p className="text-2xl font-semibold">{pendingAppointments.length}</p>
+              <p className="text-2xl font-semibold">
+                {pendingAppointments.length}
+              </p>
             </div>
             <div className="p-4 rounded-lg bg-red-100/60">
               <p className="text-sm text-gray-500">Outstanding Bills</p>
@@ -107,7 +110,9 @@ const NotificationsPage = async () => {
                 className="block p-3 rounded-md border border-gray-100 hover:bg-gray-50"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-sm md:text-base">{item.title}</p>
+                  <p className="font-medium text-sm md:text-base">
+                    {item.title}
+                  </p>
                   <span className="text-xs text-gray-500">{item.type}</span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">{item.description}</p>
