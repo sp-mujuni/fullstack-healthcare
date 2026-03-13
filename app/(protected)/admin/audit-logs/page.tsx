@@ -66,7 +66,9 @@ const AuditLogPage = async (props: PageProps) => {
       <td className="font-medium text-blue-700">{item.action}</td>
       <td>{item.model}</td>
       <td className="hidden md:table-cell">{item.record_id}</td>
-      <td className="hidden xl:table-cell max-w-80 truncate">{item.details || "-"}</td>
+      <td className="hidden xl:table-cell max-w-80 truncate">
+        {item.details || "-"}
+      </td>
       <td className="hidden lg:table-cell">
         {format(item.created_at, "yyyy-MM-dd HH:mm:ss")}
       </td>
@@ -79,7 +81,9 @@ const AuditLogPage = async (props: PageProps) => {
         <div className="hidden lg:flex items-center gap-1">
           <History size={20} className="text-gray-500" />
           <p className="text-2xl font-semibold">{totalRecords}</p>
-          <span className="text-gray-600 text-sm xl:text-base">audit events</span>
+          <span className="text-gray-600 text-sm xl:text-base">
+            audit events
+          </span>
         </div>
 
         <div className="w-full lg:w-fit flex items-center justify-between lg:justify-start gap-2">
