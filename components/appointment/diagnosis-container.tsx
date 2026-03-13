@@ -41,7 +41,6 @@ export const DiagnosisContainer = async ({
         <div className="flex flex-col items-center justify-center mt-20">
           <NoDataFound note="No diagnosis found" />
           <AddDiagnosis
-            key={new Date().getTime()}
             patientId={patientId}
             doctorId={doctorId}
             appointmentId={id}
@@ -56,7 +55,6 @@ export const DiagnosisContainer = async ({
 
               {!isPatient && (
                 <AddDiagnosis
-                  key={new Date().getTime()}
                   patientId={patientId}
                   doctorId={doctorId}
                   appointmentId={id}
