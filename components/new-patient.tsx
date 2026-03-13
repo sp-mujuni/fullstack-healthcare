@@ -27,6 +27,10 @@ interface DataProps {
   data?: Patient;
   type: "create" | "update";
 }
+
+const toDateInputValue = (value: Date | string) =>
+  new Date(value).toISOString().slice(0, 10);
+
 export const NewPatient = ({ data, type }: DataProps) => {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
@@ -46,7 +50,7 @@ export const NewPatient = ({ data, type }: DataProps) => {
     defaultValues: {
       ...userData,
       address: "",
-      date_of_birth: new Date(),
+      date_of_birth: "",
       gender: "MALE",
       marital_status: "single",
       emergency_contact_name: "",
@@ -62,7 +66,7 @@ export const NewPatient = ({ data, type }: DataProps) => {
   });
 
   const onSubmit: SubmitHandler<z.infer<typeof PatientFormSchema>> = async (
-    values
+    values,
   ) => {
     setLoading(true);
 
@@ -93,7 +97,7 @@ export const NewPatient = ({ data, type }: DataProps) => {
           last_name: data.last_name,
           email: data.email,
           phone: data.phone,
-          date_of_birth: new Date(data.date_of_birth),
+          date_of_birth: toDateInputValue(data.date_of_birth),
           gender: data.gender,
           marital_status: data.marital_status as
             | "married"
