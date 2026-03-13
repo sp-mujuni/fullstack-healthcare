@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -34,11 +34,15 @@ export const GenerateFinalBills = ({ id, total_bill }: DataProps) => {
     resolver: zodResolver(PaymentSchema),
     defaultValues: {
       id: id?.toString(),
-      bill_date: new Date(),
+      bill_date: "",
       discount: "0",
       total_amount: total_bill.toString(),
     },
   });
+
+  useEffect(() => {
+    form.setValue("bill_date", new Date().toISOString().slice(0, 10));
+  }, [form]);
 
   const handleOnSubmit = async (values: z.infer<typeof PaymentSchema>) => {
     try {
