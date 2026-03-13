@@ -33,6 +33,14 @@ const SidebarIcon = ({ icon: Icon }: { icon: LucideIcon }) => {
 
 export const Sidebar = async () => {
   const role = await getRole();
+  const dashboardHref =
+    role === "admin"
+      ? "/admin"
+      : role === "doctor"
+        ? "/doctor"
+        : role === "nurse"
+          ? "/nurse"
+          : "/patient";
 
   const SIDEBAR_LINKS = [
     {
@@ -40,7 +48,7 @@ export const Sidebar = async () => {
       links: [
         {
           name: "Dashboard",
-          href: "/",
+          href: dashboardHref,
           access: ACCESS_LEVELS_ALL,
           icon: LayoutDashboard,
         },
@@ -123,7 +131,7 @@ export const Sidebar = async () => {
         },
         {
           name: "Prescription",
-          href: "#",
+          href: "/patient/self?cat=medical-history",
           access: ["patient"],
           icon: Pill,
         },
