@@ -32,13 +32,14 @@ export const AddBills = ({ id, appId, servicesData }: DataProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [data, setData] = useState<any>();
+  const today = new Date().toISOString().slice(0, 10);
 
   const form = useForm<z.infer<typeof PatientBillSchema>>({
     resolver: zodResolver(PatientBillSchema),
     defaultValues: {
       bill_id: String(id),
       service_id: undefined,
-      service_date: new Date().toDateString(),
+      service_date: "",
       appointment_id: String(appId),
       quantity: undefined,
       unit_cost: undefined,
@@ -69,12 +70,16 @@ export const AddBills = ({ id, appId, servicesData }: DataProps) => {
   };
 
   useEffect(() => {
+    form.setValue("service_date", today);
+  }, [form, today]);
+
+  useEffect(() => {
     if (servicesData) {
       setData(
         servicesData?.map((service) => ({
           value: service.id.toString(),
           label: service.service_name,
-        }))
+        })),
       );
     }
   }, [servicesData, id]);
@@ -85,7 +90,7 @@ export const AddBills = ({ id, appId, servicesData }: DataProps) => {
   useEffect(() => {
     if (selectedService) {
       const unit_cost = servicesData.find(
-        (el) => el.id === Number(selectedService)
+        (el) => el.id === Number(selectedService),
       );
 
       if (unit_cost) {
@@ -94,7 +99,7 @@ export const AddBills = ({ id, appId, servicesData }: DataProps) => {
       if (quantity) {
         form.setValue(
           "total_cost",
-          (Number(quantity) * unit_cost?.price!).toFixed(2)
+          (Number(quantity) * unit_cost?.price!).toFixed(2),
         );
       }
     }
