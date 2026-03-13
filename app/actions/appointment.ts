@@ -1,13 +1,15 @@
 "use server";
 
 import { VitalSignsFormData } from "@/components/dialogs/add-vital-signs";
+import { createAuditLog } from "@/lib/audit";
 import db from "@/lib/db";
 import { AppointmentSchema, VitalSignsSchema } from "@/lib/schema";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { AppointmentStatus } from "@prisma/client";
 
 export async function createNewAppointment(data: any) {
   try {
+    const { userId } = await auth();
     const validatedData = AppointmentSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -15,7 +17,7 @@ export async function createNewAppointment(data: any) {
     }
     const validated = validatedData.data;
 
-    await db.appointment.create({
+    const appointment = await db.appointment.create({
       data: {
         patient_id: data.patient_id,
         doctor_id: validated.doctor_id,
@@ -24,6 +26,14 @@ export async function createNewAppointment(data: any) {
         appointment_date: new Date(validated.appointment_date),
         note: validated.note,
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: appointment.id,
+      action: "CREATE",
+      model: "Appointment",
+      details: `Booked appointment for patient ${appointment.patient_id}`,
     });
 
     return {
@@ -39,15 +49,24 @@ export async function appointmentAction(
   id: string | number,
 
   status: AppointmentStatus,
-  reason: string
+  reason: string,
 ) {
   try {
+    const { userId } = await auth();
     await db.appointment.update({
       where: { id: Number(id) },
       data: {
         status,
         reason,
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: id,
+      action: "UPDATE",
+      model: "Appointment",
+      details: `Updated appointment status to ${status}`,
     });
 
     return {
@@ -64,7 +83,7 @@ export async function appointmentAction(
 export async function addVitalSigns(
   data: VitalSignsFormData,
   appointmentId: string,
-  doctorId: string
+  doctorId: string,
 ) {
   try {
     const { userId } = await auth();
@@ -89,11 +108,19 @@ export async function addVitalSigns(
 
     const med_id = validatedData.medical_id || medicalRecord?.id;
 
-    await db.vitalSigns.create({
+    const vitalSigns = await db.vitalSigns.create({
       data: {
         ...validatedData,
         medical_id: Number(med_id!),
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: vitalSigns.id,
+      action: "CREATE",
+      model: "VitalSigns",
+      details: `Recorded vitals for patient ${validatedData.patient_id}`,
     });
 
     return {
