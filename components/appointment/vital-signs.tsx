@@ -50,7 +50,6 @@ export const VitalSigns = async ({
 
           {!isPatient && (
             <AddVitalSigns
-              key={new Date().getTime()}
               patientId={patientId}
               doctorId={doctorId}
               appointmentId={id!.toString()}
@@ -63,7 +62,7 @@ export const VitalSigns = async ({
           {vitals?.map((el) => {
             const { bmi, status, colorCode } = calculateBMI(
               el.weight || 0,
-              el.height || 0
+              el.height || 0,
             );
 
             return (
