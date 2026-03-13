@@ -1,6 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
+import { createAuditLog } from "@/lib/audit";
 import {
   DoctorSchema,
   ServicesSchema,
@@ -64,6 +65,14 @@ export async function createNewStaff(data: any) {
       },
     });
 
+    await createAuditLog({
+      userId,
+      recordId: doctor.id,
+      action: "CREATE",
+      model: "Staff",
+      details: `Created staff account for ${doctor.name}`,
+    });
+
     return {
       success: true,
       message: "Doctor added successfully",
@@ -76,6 +85,8 @@ export async function createNewStaff(data: any) {
 }
 export async function createNewDoctor(data: any) {
   try {
+    const { userId } = await auth();
+
     const values = DoctorSchema.safeParse(data);
 
     const workingDaysValues = WorkingDaysSchema.safeParse(data?.work_schedule);
@@ -114,9 +125,17 @@ export async function createNewDoctor(data: any) {
       workingDayData?.map((el) =>
         db.workingDays.create({
           data: { ...el, doctor_id: doctor.id },
-        })
-      )
+        }),
+      ),
     );
+
+    await createAuditLog({
+      userId,
+      recordId: doctor.id,
+      action: "CREATE",
+      model: "Doctor",
+      details: `Created doctor profile for ${doctor.name}`,
+    });
 
     return {
       success: true,
@@ -131,12 +150,21 @@ export async function createNewDoctor(data: any) {
 
 export async function addNewService(data: any) {
   try {
+    const { userId } = await auth();
     const isValidData = ServicesSchema.safeParse(data);
 
     const validatedData = isValidData.data;
 
-    await db.services.create({
+    const service = await db.services.create({
       data: { ...validatedData!, price: Number(data.price!) },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: service.id,
+      action: "CREATE",
+      model: "Services",
+      details: `Created service ${service.service_name}`,
     });
 
     return {
