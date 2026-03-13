@@ -26,8 +26,14 @@ const NurseMedicationPage = async (props: PageProps) => {
       status: { in: ["SCHEDULED", "COMPLETED"] },
       OR: search
         ? [
-            { patient: { first_name: { contains: search, mode: "insensitive" } } },
-            { patient: { last_name: { contains: search, mode: "insensitive" } } },
+            {
+              patient: {
+                first_name: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              patient: { last_name: { contains: search, mode: "insensitive" } },
+            },
             { doctor: { name: { contains: search, mode: "insensitive" } } },
           ]
         : undefined,
@@ -55,7 +61,9 @@ const NurseMedicationPage = async (props: PageProps) => {
         {item.patient.first_name} {item.patient.last_name}
       </td>
       <td className="hidden md:table-cell">Dr. {item.doctor.name}</td>
-      <td className="hidden lg:table-cell">{format(item.appointment_date, "yyyy-MM-dd")}</td>
+      <td className="hidden lg:table-cell">
+        {format(item.appointment_date, "yyyy-MM-dd")}
+      </td>
       <td>
         <AppointmentStatusIndicator status={item.status} />
       </td>
