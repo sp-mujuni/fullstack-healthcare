@@ -42,8 +42,12 @@ const NursePatientManagementPage = async (props: PageProps) => {
             bgColor={item.colorCode || "#E5E7EB"}
           />
           <div>
-            <p className="font-medium">{item.first_name} {item.last_name}</p>
-            <p className="text-xs text-gray-500 capitalize">{item.gender.toLowerCase()}</p>
+            <p className="font-medium">
+              {item.first_name} {item.last_name}
+            </p>
+            <p className="text-xs text-gray-500 capitalize">
+              {item.gender.toLowerCase()}
+            </p>
           </div>
         </div>
       </td>
