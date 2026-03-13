@@ -1,19 +1,22 @@
 "use server";
 
 import { DiagnosisFormData } from "@/components/dialogs/add-diagnosis";
+import { createAuditLog } from "@/lib/audit";
 import db from "@/lib/db";
 import {
   DiagnosisSchema,
   PatientBillSchema,
   PaymentSchema,
 } from "@/lib/schema";
+import { auth } from "@clerk/nextjs/server";
 import { checkRole } from "@/utils/roles";
 
 export const addDiagnosis = async (
   data: DiagnosisFormData,
-  appointmentId: string
+  appointmentId: string,
 ) => {
   try {
+    const { userId } = await auth();
     const validatedData = DiagnosisSchema.parse(data);
 
     let medicalRecord = null;
@@ -29,11 +32,19 @@ export const addDiagnosis = async (
     }
 
     const med_id = validatedData.medical_id || medicalRecord?.id;
-    await db.diagnosis.create({
+    const diagnosis = await db.diagnosis.create({
       data: {
         ...validatedData,
         medical_id: Number(med_id),
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: diagnosis.id,
+      action: "CREATE",
+      model: "Diagnosis",
+      details: `Added diagnosis for patient ${validatedData.patient_id}`,
     });
 
     return {
@@ -51,6 +62,7 @@ export const addDiagnosis = async (
 
 export async function addNewBill(data: any) {
   try {
+    const { userId } = await auth();
     const isAdmin = await checkRole("ADMIN");
     const isDoctor = await checkRole("DOCTOR");
 
@@ -101,7 +113,7 @@ export async function addNewBill(data: any) {
       };
     }
 
-    await db.patientBills.create({
+    const billLine = await db.patientBills.create({
       data: {
         bill_id: Number(bill_info?.id),
         service_id: Number(validatedData?.service_id),
@@ -110,6 +122,14 @@ export async function addNewBill(data: any) {
         unit_cost: Number(validatedData?.unit_cost),
         total_cost: Number(validatedData?.total_cost),
       },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: billLine.id,
+      action: "CREATE",
+      model: "PatientBills",
+      details: `Added bill line to payment ${bill_info?.id}`,
     });
 
     return {
@@ -125,6 +145,7 @@ export async function addNewBill(data: any) {
 
 export async function generateBill(data: any) {
   try {
+    const { userId } = await auth();
     const isValidData = PaymentSchema.safeParse(data);
 
     const validatedData = isValidData.data;
@@ -147,6 +168,14 @@ export async function generateBill(data: any) {
         status: "COMPLETED",
       },
       where: { id: res.appointment_id },
+    });
+
+    await createAuditLog({
+      userId,
+      recordId: res.id,
+      action: "UPDATE",
+      model: "Payment",
+      details: `Generated final bill and completed appointment ${res.appointment_id}`,
     });
     return {
       success: true,
